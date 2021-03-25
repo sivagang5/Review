@@ -114,7 +114,7 @@ class App extends React.Component {
       <Container>
       
         <div className={classes.bg1}>
-          <Typography variant='h3'  align='center' style={{color:'violet'}} >
+          <Typography variant='h3' color='primary' align='center' >
             Reviews
           </Typography>
           <Typography variant='h5' color='primary' align='center'>
