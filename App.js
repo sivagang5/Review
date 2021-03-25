@@ -2,38 +2,43 @@
 import React from 'react';
 import axios from '/Users/Siva/node_modules/axios';
 import './App.css';
-// import { Component } from 'react/cjs/react.development';
+import { withStyles } from '@material-ui/core/styles';
+import { Typography } from '@material-ui/core/';
+import { Button } from '@material-ui/core/';
+import { TextField } from '@material-ui/core';
+import { Container } from '@material-ui/core';
+import { Table, TableHead, TableBody, TableCell, TableRow } from '@material-ui/core';
 
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Hello World!
-//         </p>
 
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-// function Ax1() {
-//   return (
-//   axios.get('https://jsonplaceholder.typicode.com/posts')
-//   .then(response => console.log(response.data))
-//   .catch(error => console.log(error))
-//   );
-// }
+const url = 'https://jsonplaceholder.typicode.com/posts'
 
-export default class App extends React.Component {
+const useStyles = theme => ({
+  bg1: {
+     backgroundColor: '#b8fcef'
+   },
+   bg2: {
+    backgroundColor: '#a5f2e3',
+  },
+  btn: {
+    backgroundColor: '#32a197',
+    color: 'white'
+  },
+  th: {
+    backgroundColor: '#8ee8d7',
+    color: '#3946bd',
+  },
+  thc: {
+    color: '#3946bd',
+    fontSize: '20px'
+  },
+  tbc: {
+    color: '#3946bd',
+    fontSize: '16px'
+  }
+});
+
+class App extends React.Component {
+  
   constructor(props) {
     super(props);
     this.state = {
@@ -46,7 +51,7 @@ export default class App extends React.Component {
   }
 
   createPost = async () => {
-    const {data} = await axios.post('https://jsonplaceholder.typicode.com/posts',
+    const {data} = await axios.post(url,
     {
       userId: this.state.userId,
       title: this.state.title,
@@ -55,16 +60,22 @@ export default class App extends React.Component {
     let posts = [...this.state.posts]
     posts.push(data)
     this.setState({posts})
+    
   }
 
   async componentDidMount(){
-    const {data} = await axios.get('https://jsonplaceholder.typicode.com/posts')
+    const {data} = await axios.get(url)
     this.setState({posts:data})
+    
   }
 
   handleSubmit = e => {
     e.preventDefault()
-    this.createPost()
+    if (this.state.id) {
+      this.updatePost()
+    } else {
+      this.createPost()
+    }
   }
 
   handleChange = ({target: {name,value}}) => {
@@ -78,7 +89,7 @@ export default class App extends React.Component {
   }
 
   updatePost = async () => {
-    const {data} = await axios.put(`https://jsonplaceholder.typicode.com/posts/${this.state.id}`,
+    const {data} = await axios.put(`${url}/${this.state.id}`,
     {
       userId: this.state.userId,
       title: this.state.title,
@@ -90,61 +101,85 @@ export default class App extends React.Component {
     this.setState({posts, id:'', userId:'', title:'', body:''})
   }
 
+  deletePost = async postId => {
+    await axios.delete(`${url}/${postId}`)
+    let posts = [...this.state.posts]
+    posts = posts.filter(post=>post.id !== postId)
+    this.setState({posts})
+  }
+
   render () {
+    const { classes } = this.props;
     return(
-      <div>
-        <h2>List of Posts</h2>
+      <Container>
+      
+        <div className={classes.bg1}>
+          <Typography variant='h3'  align='center' style={{color:'violet'}} >
+            Reviews
+          </Typography>
+          <Typography variant='h5' color='primary' align='center'>
+          {this.state.id ? "Update" : "Add New"} Post
+            
+          </Typography>
+          <br/>
+          <Typography align='center' color='primary'>
+          <form onSubmit={this.handleSubmit}> 
+            <div>
+              <TextField label="User Id" variant="outlined" name='userId' value={this.state.userId} onChange={this.handleChange} />
+            </div>
+            <br/>
+            <div>
+              <TextField label="Title" variant="outlined" name='title' value={this.state.title} onChange={this.handleChange} />
+            </div>
+            <br/>
+            <div>
+              <TextField label="Body" variant="outlined" name='body' value={this.state.body} onChange={this.handleChange} />
+            </div>
+            <br/>
+            <div>
+              <Button variant='contained' color='primary' type='Submit' >{this.state.id ? "Update" : "Add"} Post</Button>
+            </div>
+            <br/>
+          </form>
+          </Typography>
+        </div>
         
-        <form onSubmit={this.handleSubmit}> 
-          <div>
-            <label>User Id: </label>
-            <input type='text' name='userId' value={this.state.userId} onChange={this.handleChange}/>
-          </div>
+        <div className={classes.bg2}>
           <br/>
-          <div>
-            <label>Title: </label>
-            <input type='text' name='title' value={this.state.title} onChange={this.handleChange}/>
-          </div>
-          <br/>
-          <div>
-            <label>Body: </label>
-            <input type='text' name='body' value={this.state.body} onChange={this.handleChange}/>
-          </div>
-          <br/>
-          <div>
-            <button type='Submit'>Add Post</button>
-          </div>
-          <br/>
-        </form>
+          <Typography variant='h4' color='primary' align='center'>
+            List of Posts
+          </Typography>
+          
+          <Table>
+            <TableHead className={classes.th}>
+              <TableRow>
+                <TableCell className={classes.thc}>Id</TableCell>
+                <TableCell className={classes.thc}>User Id</TableCell>
+                <TableCell className={classes.thc}>Title</TableCell>
+                <TableCell className={classes.thc}>Body</TableCell>
+                <TableCell className={classes.thc}>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {this.state.posts.map (({id,title,body,userId})=>(
+              <TableRow key={id} color='primary'>
+                <TableCell className={classes.tbc}>{id}</TableCell>
+                <TableCell className={classes.tbc}>{userId}</TableCell>
+                <TableCell className={classes.tbc}>{title}</TableCell>
+                <TableCell className={classes.tbc}>{body}</TableCell>
+                <TableCell>
+                  <Button variant='contained' className={classes.btn} onClick={()=>this.selectPostForUpdate(id)}>Update</Button>
+                  <Button variant='contained' className={classes.btn} onClick={()=>this.deletePost(id)}>Delete</Button>
+                </TableCell>
+              </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
 
-        <table>
-          <thead>
-            <tr>
-              <td>User Id</td>
-              <td>Title</td>
-              <td>Body</td>
-              <td>Action</td>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.posts.map (({id,title,body,userId})=>(
-              <tr key={id}>
-                <td>{userId}</td>
-                <td>{title}</td>
-                <td>{body}</td>
-                <td>
-                  <button onClick={()=>this.selectPostForUpdate(id)}>Update</button>
-                  {/* <button onClick={()=>this.deletePost(id)}>Delete</button> */}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-      </div>
+      </Container>
     )
   }
 }
 
-
-
+export default withStyles(useStyles)(App)
